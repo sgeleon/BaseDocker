@@ -1,0 +1,22 @@
+FROM php:8.2.1-fpm
+
+RUN apt-get update -y
+
+RUN apt-get install git -y
+
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+
+RUN  apt-get install -y \
+        libfreetype6-dev \
+        libjpeg62-turbo-dev \
+        libpng-dev \
+        libzip-dev \
+        libicu-dev \
+	&& docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd
+
+RUN docker-php-ext-install zip intl opcache mysqli fileinfo
+
+RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && php composer-setup.php && php -r "unlink('composer-setup.php');" && mv composer.phar /bin/composer
+
+RUN cd && curl https://get.symfony.com/cli/installer --output ./installer && chmod 744 ./installer && ./installer && mv /root/.symfony5/bin/symfony /usr/local/bin/symfony
